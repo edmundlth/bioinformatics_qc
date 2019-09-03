@@ -8,6 +8,6 @@ do
         --datadir /mnt/${dir} \
         --outdir /home/output/${dir}_check \
         --logfile FILECHECK_LOG.log \
-        --max_num_process 50 \
+        --max_num_process 10 \
         --polling_period 1
 done 2>/home/output/FILECHECK_STDERR_$(date '+%d%m%y_%H%M').log 1>/home/output/FILECHECK_STDOUT_$(date '+%d%m%y_%H%M').log

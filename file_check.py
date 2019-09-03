@@ -94,7 +94,8 @@ def check_fastq_pairing(df_manifest):
 
 
 def get_common_filename_prefix(filelist):
-    prefixes = map(lambda filename: filename[: filename.index('.')], filelist)
+    # ensure that the shortest string is matched first.
+    prefixes = sorted([filename[: filename.index('.')] for filename in filelist], key=len)
     return reduce(lambda prefix1, prefix2: longest_common_substring(prefix1, prefix2), prefixes)
 
 
@@ -490,7 +491,7 @@ def main():
     for bamfilepath, bamindexfilepath in zip(bamfilelist, bamindexfilelist):
         bam_name = os.path.basename(bamfilepath)
         sample_name = df_manifest.loc[df_manifest[FILENAME_KEY] == bam_name, SAMPLE_NAME_KEY]
-        vcf_name = df_manifest.groupby(by=[FILETYPE_KEY, SAMPLE_NAME_KEY]).get_group([VCF_TYPE_KEY, sample_name])
+        vcf_name = df_manifest.groupby(by=[FILETYPE_KEY, SAMPLE_NAME_KEY]).get_group((VCF_TYPE_KEY, sample_name))
         vcffilepath = ' '.join([os.path.join(datadirpath, name) for name in vcf_name])
         outprefix = os.path.join(outdirpath, f"{sample_name}_VerifyBamID_output")
         cmd = verifybamid_cmd.format(bamfilepath=bamfilepath,
@@ -499,10 +500,6 @@ def main():
                                      outprefix=outprefix)
         verifybamid_params.append((cmd, None, None))
     dumb_scheduler(verifybamid_params, max_process_num=max_num_process, polling_period=polling_period)
-    # if return_code != 0:
-    #     logging.warning(f"WARNING: Command VerifyBamID return with nonzero return code {return_code}.")
-    # else:
-    #     logging.info(f"VerifyBamID successfully completed.")
 
     # Running MultiQC
     date = datetime.now().strftime("%d-%m-%Y-%H:%M")
@@ -525,3 +522,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
